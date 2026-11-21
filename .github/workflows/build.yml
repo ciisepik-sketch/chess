@@ -18,11 +18,19 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release download --repo official-stockfish/Stockfish --pattern '*android*' --dir sf
-          ls -R sf
-          find sf -name '*.tar' -exec tar -xf {} -C sf \;
-          BIN=$(find sf -type f -name '*armv8*' ! -name '*.tar*' ! -name '*dotprod*' | head -1)
+          mkdir sf
+          gh release download --repo official-stockfish/Stockfish --pattern '*android*' --dir sf || true
+          if [ -z "$(ls -A sf)" ]; then
+            TAG=$(gh release list --repo official-stockfish/Stockfish --limit 1 --json tagName -q '.[0].tagName')
+            gh release download "$TAG" --repo official-stockfish/Stockfish --pattern '*android*' --dir sf
+          fi
+          ls -la sf
+          cd sf
+          for f in *.tar *.tar.gz *.tgz; do [ -f "$f" ] && tar -xf "$f"; done || true
+          cd ..
+          BIN=$(find sf -type f -size +5M ! -name '*.tar*' ! -name '*.tgz' ! -name '*.nnue' ! -name '*dotprod*' | head -1)
           echo "Using $BIN"
+          file "$BIN"
           cp "$BIN" ChessAssistant/app/src/main/jniLibs/arm64-v8a/libstockfish.so
       - name: Build
         run: cd ChessAssistant && gradle assembleDebug
