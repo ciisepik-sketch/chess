@@ -181,6 +181,11 @@ jobs:
           echo "Using $BIN"
           file "$BIN"
           cp "$BIN" ChessAssistant/app/src/main/jniLibs/arm64-v8a/libstockfish.so
+      - name: Rename app
+        run: |
+          sed -i 's/<string name="app_name">Chess Assistant<\/string>/<string name="app_name">Cjs stockfish<\/string>/' ChessAssistant/app/src/main/res/values/strings.xml
+          sed -i 's/text = "Chess Assistant"; textSize = 26f/text = "Cjs stockfish"; textSize = 26f/' ChessAssistant/app/src/main/java/com/chessassistant/MainActivity.kt
+          grep -n "Cjs stockfish" ChessAssistant/app/src/main/res/values/strings.xml ChessAssistant/app/src/main/java/com/chessassistant/MainActivity.kt
       - name: Build
         run: cd ChessAssistant && gradle assembleDebug
       - uses: actions/upload-artifact@v4
